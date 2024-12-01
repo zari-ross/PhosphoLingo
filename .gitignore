@@ -1,0 +1,15 @@
+*.csv
+*.xls*
+*.zip
+*.png
+*.gif
+*.svg
+*.docx
+archive*
+config*
+output*.fasta
+model_output*
+dat_preproc*
+dat_proc*
+dataset/arsen*
+dataset/H2*
