@@ -27,6 +27,47 @@ dat_proteome <- data.frame(
 dat_proc <- dat_preproc %>%
   dplyr::left_join(dat_proteome, by = "Accession") %>%
   dplyr::mutate(Position = as.numeric(sub("^[A-Z]", "", Phosphosite)))
+
+# ---------------------------------------------------------------------------- #
+# ---------------------------------------------------------------------------- #
+# ---------------------------------------------------------------------------- #
+# Kinase prediction with PhosphoLingo preprocessing
+
+# Deduplicate based on Fasta name
+dat_unique <- dat_proc[!duplicated(dat_proc$`Fasta name`), ]
+
+# Create a tagged sequence for each position
+tagged_sequences <- lapply(1:nrow(dat_proc), function(i) {
+  seq <- unlist(strsplit(dat_proc$Sequence[i], ""))
+  pos <- dat_proc$Position[i]
+  # Add '#' to the specified position
+  seq[pos] <- paste0(seq[pos], "#")
+  paste(seq, collapse = "")
+})
+
+dat_proc$TaggedSequence <- tagged_sequences
+
+# Combine tagged sequences for each Fasta name
+final_sequences <- dat_proc %>%
+  group_by(`Fasta name`) %>%
+  summarize(
+    CombinedSequence = paste0(TaggedSequence, collapse = ""),
+    .groups = "drop"
+  )
+
+# Write the sequences into a FASTA file
+fasta_lines <- final_sequences %>%
+  mutate(
+    fasta_header = paste0(">", `Fasta name`),  # Create the FASTA header
+    fasta_sequence = CombinedSequence         # Add the sequence
+  ) %>%
+  select(fasta_header, fasta_sequence) %>%
+  unlist()   
+
+writeLines(fasta_lines, paste0("dataset/", condition, "_output_for_PhosphoLingo.fasta"))
+
+# ---------------------------------------------------------------------------- #
+# ---------------------------------------------------------------------------- #
 # ---------------------------------------------------------------------------- #
 
 window_size <- 33
