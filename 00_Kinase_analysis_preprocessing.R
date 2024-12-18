@@ -58,13 +58,16 @@ final_sequences <- dat_proc %>%
 # Write the sequences into a FASTA file
 fasta_lines <- final_sequences %>%
   mutate(
-    fasta_header = paste0(">", `Fasta name`),  # Create the FASTA header
-    fasta_sequence = CombinedSequence         # Add the sequence
+    fasta_header = paste0(">", `Fasta name`), 
+    fasta_sequence = CombinedSequence
   ) %>%
   select(fasta_header, fasta_sequence) %>%
-  unlist()   
+  pivot_longer(everything(), values_to = "lines") %>%
+  pull(lines)
 
-writeLines(fasta_lines, paste0("dataset/", condition, "_output_for_PhosphoLingo.fasta"))
+head(fasta_lines)
+
+writeLines(fasta_lines, paste0("data/", condition, "_output_for_PhosphoLingo.fasta"))
 
 # ---------------------------------------------------------------------------- #
 # ---------------------------------------------------------------------------- #
